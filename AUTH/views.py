@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 
 # Create your views here.
 def userExist(request):
@@ -16,13 +17,15 @@ def registerView(request):
 		password1 = request.POST['password1']
 		password2 = request.POST['password2']
 
-		check_username = User.objects.filter(username=username)
-		check_email = User.objects.filter(email=email)
-		if check_username or email:
-			return userExist(request)
+		a = User.objects.all()
+		
+		for i in a:
+			if username == i.username or email == i.email:
+				return userExist(request)
 
 		if password1 != password2:
 			check_password = True
+
 		else:
 			user = User.objects.create_user(username=username, email=email, password=password1)
 			return redirect('/')
@@ -33,3 +36,25 @@ def registerView(request):
 	}
 
 	return render(request, 'user/register.html', context)
+
+def loginView(request):
+	condition = False
+	if request.method == 'POST':
+		username = request.POST['username']
+		password = request.POST['password']
+		user = authenticate(username=username, password=password)
+		if user:
+			login(request, user)
+			return redirect('/')
+		else:
+			condition = True
+	context = {
+		'condition':condition,
+	}
+
+	return render(request, 'user/login.html', context)
+
+def logoutView(request):
+	logout(request)
+	return redirect('/')
+			
